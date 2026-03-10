@@ -1,226 +1,208 @@
-# AWS Architecture Diagrams — Draw.io Plugin
+# AWS Architecture Diagram Plugin — Draw.io
 
-A **Claude Code plugin** that scans your AWS infrastructure-as-code (CloudFormation, CDK, Terraform, SAM) and generates professional Draw.io architecture diagrams with **official AWS icons** (`mxgraph.aws4.*`) by orchestrating `drawio-mcp-server`.
+Equip AI coding agents with the skill to generate professional Draw.io architecture diagrams with **official AWS icons** from AWS infrastructure-as-code. Works with **Claude Code**, **Kiro**, **Cursor**, **Windsurf**, and any MCP-compatible editor.
 
----
-
-## Installation
-
-### Option A — Claude Code GUI (Recommended)
-
-1. **Open Claude Code** (the desktop app or VS Code extension)
-
-2. **Add the plugin** — type this slash command in any conversation:
-   ```
-   /plugin add github:nirmal84/aws-arch-drawio-plugin
-   ```
-   Or use the Plugin Manager:
-   - Click **"Plugins"** in the sidebar → **"Add Plugin"** → paste the GitHub URL:
-     `https://github.com/nirmal84/aws-arch-drawio-plugin`
-
-3. **Choose install scope** when prompted:
-   - **User** — available in all your projects (recommended)
-   - **Project** — shared via `.claude/` committed to git (for teams)
-
-4. **Verify** — you should now see `/arch-drawio` in the `/` command menu
+> **Note:** Always review generated diagrams before using them in production documentation. AI can occasionally misclassify resources or miss relationships.
 
 ---
 
-### Option B — Claude Code CLI
+## What This Plugin Does
 
-```bash
-claude plugin add github:nirmal84/aws-arch-drawio-plugin
-```
+The AWS Arch Draw.io plugin gives your AI agent a `/arch-drawio` command that scans your IaC codebase and produces a professional Draw.io diagram with official AWS icons (`mxgraph.aws4.*`), tier-based layout, layer management, and support for PNG/SVG export.
 
-For project scope (shared with your team via git):
-```bash
-claude plugin add github:nirmal84/aws-arch-drawio-plugin --scope project
-```
+### Agent Skill Triggers
 
----
+The skill activates when you ask questions like:
 
-### Option C — Manual installation
-
-```bash
-# User-level (available in all projects)
-git clone https://github.com/nirmal84/aws-arch-drawio-plugin \
-  ~/.claude/plugins/aws-arch-drawio
-
-# Project-level (checked into git, shared with team)
-git clone https://github.com/nirmal84/aws-arch-drawio-plugin \
-  .claude/plugins/aws-arch-drawio
-```
-
-Then restart Claude Code.
+| Trigger Phrase | What It Does |
+|---|---|
+| *"/arch-drawio"* | Full scan → parse → diagram pipeline |
+| *"Generate a Draw.io architecture diagram"* | Scans IaC, opens diagram in Draw.io editor |
+| *"Draw my AWS infrastructure with official icons"* | Places `mxgraph.aws4.*` shapes with tier layout |
+| *"Show me the service relationships in this project"* | Infers connections from IAM, env vars, event sources |
+| *"Create an architecture diagram with VPC boundaries"* | Adds region/VPC/subnet/AZ boundary containers |
+| *"Export my architecture to PNG"* | Generates diagram and provides export instructions |
 
 ---
 
-## Required MCP Servers
+## Pipeline
 
-Install these MCP servers for Claude Code **before** using the plugin:
+When you run `/arch-drawio`, the plugin follows this pipeline:
 
-### Minimum (required)
-
-```bash
-# Draw.io MCP — live editor, shape library, full CRUD (900+ stars)
-claude mcp add drawio -- npx -y drawio-mcp-server --editor
-
-# AWS IaC MCP — CloudFormation validation, CDK docs
-claude mcp add awslabs-iac -e FASTMCP_LOG_LEVEL=ERROR -- uvx awslabs.aws-iac-mcp-server@latest
-```
-
-### Full setup (recommended)
-
-```bash
-# Draw.io MCP (required)
-claude mcp add drawio -- npx -y drawio-mcp-server --editor
-
-# AWS MCPs
-claude mcp add awslabs-iac -e FASTMCP_LOG_LEVEL=ERROR -- uvx awslabs.aws-iac-mcp-server@latest
-claude mcp add awslabs-cdk -e FASTMCP_LOG_LEVEL=ERROR -- uvx awslabs.cdk-mcp-server@latest
-claude mcp add awslabs-terraform -e FASTMCP_LOG_LEVEL=ERROR -- uvx awslabs.terraform-mcp-server@latest
-
-# Live AWS account mode (optional)
-claude mcp add awslabs-cfn \
-  -e AWS_PROFILE=$AWS_PROFILE \
-  -e AWS_REGION=$AWS_REGION \
-  -- uvx awslabs.cfn-mcp-server@latest
-```
-
----
-
-## Usage
-
-Navigate to any AWS project directory and run:
-
-```
-/arch-drawio
-```
-
-### All options
-
-```
-/arch-drawio                                          # Static analysis → architecture.drawio
-/arch-drawio --file docs/arch.drawio                  # Custom output path
-/arch-drawio --style minimal                          # Fewer nodes (no monitoring/IAM)
-/arch-drawio --style detailed                         # All nodes + ARN annotations
-/arch-drawio --layers                                 # Organize into draw.io layers
-/arch-drawio --backend sujimoshi                      # File-based output, no editor
-/arch-drawio --backend official                       # One-shot XML via @drawio/mcp
-/arch-drawio --export png                             # Also export to PNG via draw.io CLI
-/arch-drawio --live --region ap-southeast-2           # Overlay deployed AWS state
-/arch-drawio --update architecture.drawio             # Incrementally update existing diagram
-```
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--file` | `architecture.drawio` | Output file path |
-| `--style` | `standard` | `minimal` / `standard` / `detailed` |
-| `--backend` | `lgazo` | `lgazo` / `sujimoshi` / `official` |
-| `--layers` | true | Separate Boundaries / Services / Connections layers |
-| `--export` | — | Export format: `png` / `svg` / `pdf` |
-| `--live` | false | Query live AWS account for deployed state |
-| `--profile` | default | AWS profile for live mode |
-| `--region` | from config | AWS region for live mode |
-| `--update` | — | Path to existing diagram to update |
-
----
-
-## Draw.io Backends
-
-| Backend | Flag | Best for |
-|---------|------|----------|
-| **lgazo** (default) | `--backend lgazo` | Live editor — watch diagram build in real-time at `localhost:3000` |
-| **sujimoshi** | `--backend sujimoshi` | File-only — writes `.drawio.svg` directly, no editor needed, CI-friendly |
-| **official** | `--backend official` | One-shot XML — opens in draw.io editor via URL, portable |
+1. **Scan & Detect** — Walks the project looking for IaC files (CloudFormation, SAM, CDK, Terraform, Serverless Framework) and application code (AWS SDK usage)
+2. **Parse Resources** — Extracts AWS resource definitions and builds a resource inventory with service name, tier, and `mxgraph.aws4.*` shape name
+3. **Infer Relationships** — Analyses IAM policies, environment variables, event source mappings, API Gateway integrations, S3 notifications, Step Functions states, and SNS subscriptions
+4. **Detect Boundaries** — Groups resources into Account → Region → VPC → Subnet → AZ containers; ECS services under clusters
+5. **Generate Diagram** — Calls `drawio-mcp-server` tool sequence: creates layers, places boundary containers, places AWS icon nodes with explicit coordinates, draws edges
+6. **Report** — Provides diagram location (`http://localhost:3000/`), resource count, layer summary, and export instructions
 
 ---
 
 ## Supported IaC Frameworks
 
 | Framework | Detection |
-|-----------|-----------|
-| CloudFormation | `*.yaml`/`*.yml`/`*.json` with `AWSTemplateFormatVersion` |
-| SAM | `Transform: AWS::Serverless` |
-| AWS CDK (TypeScript) | `cdk.json` + `aws-cdk-lib` imports |
-| Terraform | `*.tf` files with `resource "aws_*"` |
-| Serverless Framework | `serverless.yml` with `provider: name: aws` |
+|---|---|
+| AWS CloudFormation | `AWSTemplateFormatVersion: "2010-09-09"` in `.yaml`/`.json` |
+| AWS SAM | `Transform: AWS::Serverless-2016-10-31` |
+| AWS CDK (TypeScript) | `cdk.json` at root or `aws-cdk-lib` imports in `bin/*.ts`, `lib/*.ts` |
+| Terraform | `*.tf` files with `resource "aws_*"` blocks |
+| Serverless Framework | `serverless.yml` / `serverless.yaml` |
+| Application Code | `*.ts`, `*.py`, `*.java` scanned for AWS SDK client instantiation |
 
 ---
 
-## AWS Icon Library
+## Relationship Inference
 
-Uses Draw.io's built-in `mxgraph.aws4.*` shapes — the same official AWS icons used in AWS documentation:
+The skill infers service connections from:
 
-`Lambda` · `API Gateway` · `DynamoDB` · `S3` · `SQS` · `SNS` · `EventBridge` · `CloudFront` · `ECS` · `Fargate` · `EKS` · `RDS` · `Aurora` · `ElastiCache` · `Step Functions` · `Kinesis` · `MSK (Kafka)` · `Bedrock` · `SageMaker` · `Cognito` · `CloudWatch` · `ALB` · `NLB` · `Route 53` · `WAF` · `Neptune` · `OpenSearch` · `Redshift` · `Global Accelerator` · and more
-
----
-
-## How it works
-
-```
-Your IaC code
-      │
-  ┌───▼──────────┐    ┌─────────────────────┐    ┌────────────────────┐
-  │   Scanner    │    │     Parsers          │    │   Graph Builder    │
-  │ Detects: CFN │───►│ CFN, SAM, CDK,      │───►│ Merges partials,   │
-  │ CDK, TF, SAM │    │ Terraform parsers    │    │ infers relations   │
-  └──────────────┘    └─────────────────────┘    └─────────┬──────────┘
-                                                            │
-                                                  ┌─────────▼──────────┐
-                                                  │   Layout Engine    │
-                                                  │ Tier-based grid:   │
-                                                  │ edge→compute→data  │
-                                                  └─────────┬──────────┘
-                                                            │
-                                                  ┌─────────▼──────────┐
-                                                  │  drawio-mcp-server │
-                                                  │  Official AWS icons │
-                                                  │  Layer management  │
-                                                  └─────────┬──────────┘
-                                                            │
-                                                   architecture.drawio
-```
-
-Relationship inference covers: IAM policies · environment variables · event source mappings · Step Functions state definitions
+| Source | What It Detects |
+|---|---|
+| IAM policies | `dynamodb:PutItem` → Lambda writes to DynamoDB |
+| Environment variables | `TABLE_NAME: !Ref OrdersTable` → Lambda connects to table |
+| Event source mappings | `SQS/Kinesis/DynamoDB Stream` → Lambda triggers |
+| API Gateway integrations | API GW → Lambda/HTTP proxy routing |
+| S3 notifications | `NotificationConfiguration` → Lambda/SQS/SNS triggers |
+| SNS subscriptions | `SNS` → SQS/Lambda/HTTP subscriptions |
+| Step Functions | State machine definition → Lambda/ECS invocations |
+| AWS SDK usage | `new DynamoDBClient()`, `boto3.client('s3')` → inferred data flows |
 
 ---
 
-## Why Draw.io vs Excalidraw?
+## Draw.io Backends
 
-| | Draw.io | Excalidraw |
-|--|---------|------------|
-| **AWS Icons** | ✅ Official `mxgraph.aws4.*` | Text labels only |
-| **Enterprise** | ✅ Confluence/Jira/SharePoint | Modern eng teams |
-| **Layers** | ✅ Toggle boundary/service/connection visibility | No |
-| **Export** | PNG, SVG, PDF (draw.io CLI) | PNG only |
-| **Aesthetic** | Professional/formal | Hand-drawn/sketch |
+| Backend | Flag | Description |
+|---|---|---|
+| **lgazo** *(default)* | `--backend lgazo` | Live editor via `drawio-mcp-server` at `localhost:3000` |
+| **sujimoshi** | `--backend sujimoshi` | File-based output, no running editor required |
+| **official** | `--backend official` | One-shot mxGraph XML via `@drawio/mcp` |
 
 ---
 
-## Companion plugin
+## Style Modes
 
-- **[aws-arch-excalidraw-plugin](https://github.com/nirmal84/aws-arch-excalidraw-plugin)** — same analysis, outputs Excalidraw with auto-layout. Better for informal diagrams, workshops, whiteboarding.
+| Mode | Description |
+|---|---|
+| `--style minimal` | Only edge + compute + data tiers. No boundaries or monitoring. Clean for presentations. |
+| `--style standard` | All tiers. VPC/subnet boundaries. Inferred edges as dashed grey. 3 layers. *(default)* |
+| `--style detailed` | AZ boundaries, security group nodes, CloudWatch alarms, IAM roles, ARN metadata on all nodes. |
 
 ---
 
-## Troubleshooting
+## Plugin Components
 
-**Plugin not appearing in `/` menu**
-- Restart Claude Code after installation
-- Run `claude plugin list` to verify installation
+### Agent Skill
 
-**`drawio-mcp-server` not found**
-- Install it: `claude mcp add drawio -- npx -y drawio-mcp-server --editor`
-- Verify: `claude mcp list`
+| Component | Description |
+|---|---|
+| `skills/arch-drawio/SKILL.md` | Core skill — pipeline stages, AWS shape map, style modes, layout guide |
+| `skills/arch-drawio/references/aws-shape-map.md` | Complete `mxgraph.aws4.*` shape name reference for 50+ AWS services |
+| `skills/arch-drawio/references/drawio-style-guide.md` | Boundary styles, edge styles, tier coordinates, layer management |
+| `skills/arch-drawio/references/iac-parsing-patterns.md` | Parsing reference for CloudFormation, SAM, CDK, Terraform, Serverless |
 
-**No resources found**
-- Ensure IaC files are present (`*.yaml` with `AWSTemplateFormatVersion`, `*.tf`, etc.)
+### MCP Servers
 
-**Build from source**
+The plugin configures two MCP servers via `mcp.json`:
+- **[drawio-mcp-server](https://github.com/lgazo/drawio-mcp-server)** — Live Draw.io editor control: create layers, add shapes, add edges, set data attributes
+- **[awslabs.aws-iac-mcp-server](https://github.com/awslabs/mcp)** — IaC validation (cfn-lint, Checkov) and template analysis
+
+---
+
+## Prerequisites
+
+- **Node.js 18+** — for the TypeScript engine
+- **Python 3.10+ with [uv](https://docs.astral.sh/uv/)** — for the AWS IaC MCP server (runs via `uvx`)
+- **Draw.io desktop app** (optional) — running at `localhost:3000` for live editor backend
+
+---
+
+## Installation
+
+### Claude Code (GUI — Recommended)
+
+1. Open **Claude Code** → click the **Extensions** icon (puzzle piece) in the sidebar
+2. Click **Install Plugin from URL**
+3. Enter: `https://github.com/nirmal84/aws-arch-drawio-plugin`
+4. Click **Install** — Claude Code clones the plugin and registers the skill and MCP servers automatically
+5. In any project with IaC code, type `/arch-drawio`
+
+### Claude Code (CLI)
+
 ```bash
-git clone https://github.com/nirmal84/aws-arch-drawio-plugin
-cd aws-arch-drawio-plugin
-npm install
-npm run build
+# Clone the plugin
+git clone https://github.com/nirmal84/aws-arch-drawio-plugin.git ~/.claude/plugins/aws-arch-drawio
+
+# Register the skill
+cp -r ~/.claude/plugins/aws-arch-drawio/skills/arch-drawio ~/.claude/skills/
+
+# Add MCP servers
+claude mcp add drawio -- npx -y drawio-mcp-server
+claude mcp add aws-iac -- uvx awslabs.aws-iac-mcp-server@latest
 ```
+
+### Manual (Cursor / Windsurf / Kiro / Other MCP Editors)
+
+1. Copy `skills/arch-drawio/` to your editor's skills directory
+2. Merge `mcp.json` into your editor's MCP server configuration
+
+---
+
+## Usage
+
+```bash
+/arch-drawio                                        # Scan repo, generate diagram
+/arch-drawio --file architecture.drawio             # Output to specific file
+/arch-drawio --live --region ap-southeast-2         # Include deployed AWS state
+/arch-drawio --update architecture.drawio           # Update existing diagram
+/arch-drawio --export png                           # Also export to PNG
+/arch-drawio --layers                               # Organise into draw.io layers
+/arch-drawio --style minimal                        # Fewer nodes (no monitoring/IAM)
+/arch-drawio --backend sujimoshi                    # File-based output, no editor
+/arch-drawio --backend official                     # One-shot XML via @drawio/mcp
+```
+
+---
+
+## File Structure
+
+```
+aws-arch-drawio-plugin/
+├── skills/
+│   └── arch-drawio/
+│       ├── SKILL.md                              # Core agent skill
+│       └── references/
+│           ├── aws-shape-map.md                  # mxgraph.aws4.* shape names
+│           ├── drawio-style-guide.md             # Styles, layout, layer guide
+│           └── iac-parsing-patterns.md           # IaC parsing reference
+├── commands/
+│   └── arch-drawio.md                            # /arch-drawio command
+├── src/                                          # TypeScript engine
+│   ├── scanner/                                  # IaC file detection
+│   ├── parsers/                                  # CloudFormation, CDK, Terraform, SAM
+│   ├── graph/                                    # Resource graph, inference, boundaries
+│   ├── translator/                               # drawio-mcp-server payload builder
+│   │   ├── aws-shape-map.ts
+│   │   ├── drawio-styles.ts
+│   │   ├── layout-engine.ts
+│   │   ├── lgazo-translator.ts
+│   │   ├── xml-generator.ts
+│   │   └── sujimoshi-translator.ts
+│   └── index.ts
+├── mcp.json                                      # MCP server configuration
+├── .claude-plugin/plugin.json                    # Plugin manifest
+├── package.json
+└── README.md
+```
+
+---
+
+## Related Resources
+
+- [drawio-mcp-server](https://github.com/lgazo/drawio-mcp-server) — Draw.io MCP server (lgazo backend)
+- [awslabs/mcp](https://github.com/awslabs/mcp) — Official AWS MCP servers
+- [aws-arch-excalidraw-plugin](https://github.com/nirmal84/aws-arch-excalidraw-plugin) — Sister plugin for Excalidraw with auto-layout
+
+---
+
+## Author
+
+**Nirmal Rajan** — [@nirmal84](https://github.com/nirmal84)

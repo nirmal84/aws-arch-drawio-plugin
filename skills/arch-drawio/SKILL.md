@@ -1,8 +1,21 @@
 ---
-name: arch-drawio
-description: Analyse AWS infrastructure code and generate Draw.io architecture diagrams with official AWS icons using drawio-mcp-server and AWS MCP servers
-allowed-tools: Read, Glob, Grep, Bash(node:*), Bash(cat:*), Bash(ls:*), Bash(find:*)
-argument-hint: "[--file <path>] [--style minimal|standard|detailed] [--backend lgazo|sujimoshi|official] [--layers] [--export png|svg]"
+name: aws-arch-drawio
+description: >
+  AWS architecture diagram generator for Draw.io. Analyses IaC code
+  (CloudFormation, CDK, Terraform, SAM) and generates professional Draw.io
+  diagrams with official AWS icons (mxgraph.aws4.*) via drawio-mcp-server,
+  with tier-based layout, layer management, and PNG/SVG export.
+
+  USE THIS SKILL whenever someone:
+  - Shares CloudFormation, CDK, Terraform, or SAM code and asks for a Draw.io diagram
+  - Runs /arch-drawio or asks to visualise their AWS infrastructure in Draw.io
+  - Wants official AWS icons with proper tier-based layout (edge → compute → data)
+  - Asks "draw my architecture", "generate a drawio diagram", or "visualise my stack"
+  - Needs a professional, export-ready diagram with layers for boundaries, services,
+    and connections — suitable for enterprise documentation or architecture reviews
+  - Wants to see inferred connections between services (IAM policies, env vars, event
+    source mappings, SNS subscriptions, S3 notifications, Step Functions states)
+  - Needs a diagram with VPC/subnet/AZ boundary containers and security group overlays
 ---
 
 # AWS Architecture Diagram — Draw.io
