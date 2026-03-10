@@ -1,7 +1,8 @@
 ---
 name: arch-drawio
 description: Analyse AWS infrastructure code and generate Draw.io architecture diagrams with official AWS icons using drawio-mcp-server and AWS MCP servers
-version: 0.1.0
+allowed-tools: Read, Glob, Grep, Bash(node:*), Bash(cat:*), Bash(ls:*), Bash(find:*)
+argument-hint: "[--file <path>] [--style minimal|standard|detailed] [--backend lgazo|sujimoshi|official] [--layers] [--export png|svg]"
 ---
 
 # AWS Architecture Diagram — Draw.io
