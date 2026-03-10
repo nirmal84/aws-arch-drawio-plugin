@@ -1,0 +1,25 @@
+{
+  "name": "aws-arch-drawio-plugin",
+  "owner": {
+    "name": "Nirmal Kumar",
+    "email": ""
+  },
+  "metadata": {
+    "description": "Generate Draw.io architecture diagrams with official AWS icons (mxgraph.aws4.*) from IaC code (CloudFormation, CDK, Terraform, SAM). Enterprise-ready output with layer management and PNG/SVG export.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "aws-arch-drawio",
+      "source": "./",
+      "version": "0.1.0",
+      "category": "cloud-operations",
+      "description": "AWS architecture diagram generator for Draw.io. Scans CloudFormation, CDK, Terraform, and SAM code, infers service relationships, and renders professional Draw.io diagrams with official AWS icons (mxgraph.aws4.*), tier-based layout, and layer management.",
+      "keywords": [
+        "aws", "architecture", "diagram", "drawio", "draw.io", "cdk",
+        "cloudformation", "terraform", "sam", "infrastructure", "visualization"
+      ],
+      "tags": ["aws", "architecture", "drawio", "infrastructure", "diagram"]
+    }
+  ]
+}

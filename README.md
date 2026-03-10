@@ -117,29 +117,34 @@ The plugin configures two MCP servers via `mcp.json`:
 
 ## Installation
 
-### Claude Code (GUI — Recommended)
+### Claude Code — via `/plugin` command (Recommended)
 
-1. Open **Claude Code** → click the **Extensions** icon (puzzle piece) in the sidebar
-2. Click **Install Plugin from URL**
-3. Enter: `https://github.com/nirmal84/aws-arch-drawio-plugin`
-4. Click **Install** — Claude Code clones the plugin and registers the skill and MCP servers automatically
-5. In any project with IaC code, type `/arch-drawio`
+In any Claude Code session, run these two commands:
 
-### Claude Code (CLI)
+```
+/plugin marketplace add nirmal84/aws-arch-drawio-plugin
+/plugin install aws-arch-drawio@nirmal84-aws-arch-drawio-plugin
+```
+
+Then in any project with IaC code, type `/arch-drawio`.
+
+> **Tip**: Type `/plugin` to open the plugin manager UI — browse the **Discover** tab after adding the marketplace.
+
+### Claude Code — Manual (CLI)
 
 ```bash
 # Clone the plugin
-git clone https://github.com/nirmal84/aws-arch-drawio-plugin.git ~/.claude/plugins/aws-arch-drawio
+git clone https://github.com/nirmal84/aws-arch-drawio-plugin.git
 
-# Register the skill
-cp -r ~/.claude/plugins/aws-arch-drawio/skills/arch-drawio ~/.claude/skills/
+# Copy skill to Claude's skills directory
+cp -r aws-arch-drawio-plugin/skills/arch-drawio ~/.claude/skills/
 
 # Add MCP servers
 claude mcp add drawio -- npx -y drawio-mcp-server
 claude mcp add aws-iac -- uvx awslabs.aws-iac-mcp-server@latest
 ```
 
-### Manual (Cursor / Windsurf / Kiro / Other MCP Editors)
+### Cursor / Windsurf / Kiro / Other MCP Editors
 
 1. Copy `skills/arch-drawio/` to your editor's skills directory
 2. Merge `mcp.json` into your editor's MCP server configuration
