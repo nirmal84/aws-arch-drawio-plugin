@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "drawio": {
+      "command": "npx",
+      "args": ["-y", "drawio-mcp-server", "--editor"],
+      "description": "Draw.io MCP server with built-in editor, full CRUD, shape library access, layer management"
+    },
+    "awslabs-iac": {
+      "command": "uvx",
+      "args": ["awslabs.aws-iac-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "description": "AWS IaC MCP — CloudFormation/CDK validation, docs, security scanning"
+    }
+  }
+}

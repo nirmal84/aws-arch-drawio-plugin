@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.js.map
+.DS_Store
+.env
+.arch-diagram.json
+*.drawio
+*.drawio.svg
+*.drawio.png

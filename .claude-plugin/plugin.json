@@ -1,0 +1,14 @@
+{
+  "name": "aws-arch-drawio",
+  "description": "Generate Draw.io architecture diagrams with official AWS icons from IaC code (CDK, Terraform, CloudFormation). Professional, enterprise-ready output with layer management and export to PNG/SVG/PDF.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Nirmal",
+    "url": "https://github.com/nirmal"
+  },
+  "license": "MIT",
+  "keywords": ["aws", "architecture", "diagram", "drawio", "draw.io", "cdk", "terraform", "cloudformation"],
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "agents": "./agents/"
+}
