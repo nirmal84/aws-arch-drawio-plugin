@@ -43,6 +43,29 @@ export const DRAWIO_AWS_SHAPES: Record<string, string> = {
   'users':              'mxgraph.aws4.user',
   'timestream':         'mxgraph.aws4.timestream',
   'app-mesh':           'mxgraph.aws4.app_mesh',
+  // Network primitives
+  'vpc':                'mxgraph.aws4.vpc',
+  'subnet':             'mxgraph.aws4.public_subnet',
+  'internet-gateway':   'mxgraph.aws4.internet_gateway',
+  'nat-gateway':        'mxgraph.aws4.nat_gateway',
+  'security-group':     'mxgraph.aws4.security_group',
+  'vpc-endpoint':       'mxgraph.aws4.endpoints',
+  'eip':                'mxgraph.aws4.elastic_ip_address',
+  'target-group':       'mxgraph.aws4.application_load_balancer',
+  // Registry / Cluster / Cert / Secrets / Logs
+  'ecr':                'mxgraph.aws4.elastic_container_registry',
+  'ecs-cluster':        'mxgraph.aws4.ecs',
+  'acm':                'mxgraph.aws4.certificate_manager',
+  'secrets-manager':    'mxgraph.aws4.secrets_manager',
+  'ssm-parameter':      'mxgraph.aws4.systems_manager_parameter_store',
+  'cloudwatch-logs':    'mxgraph.aws4.cloudwatch_2',
+  // CI/CD
+  'codepipeline':       'mxgraph.aws4.codepipeline',
+  'codebuild':          'mxgraph.aws4.codebuild',
+  'codedeploy':         'mxgraph.aws4.codedeploy',
+  'codecommit':         'mxgraph.aws4.codecommit',
+  // Email / Identity
+  'ses':                'mxgraph.aws4.simple_email_service',
 };
 
 export function getAwsShape(service: string): string {
