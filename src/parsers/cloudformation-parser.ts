@@ -42,6 +42,33 @@ const CFN_TYPE_MAP: Record<string, string> = {
   'AWS::OpenSearchService::Domain':           'opensearch',
   'AWS::Redshift::Cluster':                   'redshift',
   'AWS::GlobalAccelerator::Accelerator':      'global-accelerator',
+  // Network / VPC (commonly used in classic 3-tier architectures)
+  'AWS::EC2::VPC':                            'vpc',
+  'AWS::EC2::Subnet':                         'subnet',
+  'AWS::EC2::InternetGateway':                'internet-gateway',
+  'AWS::EC2::NatGateway':                     'nat-gateway',
+  'AWS::EC2::SecurityGroup':                  'security-group',
+  'AWS::EC2::Instance':                       'ec2',
+  'AWS::EC2::VPCEndpoint':                    'vpc-endpoint',
+  'AWS::EC2::EIP':                            'eip',
+  'AWS::ElasticLoadBalancingV2::TargetGroup': 'target-group',
+  // Container registry / Cert / Secrets / Logs
+  'AWS::ECR::Repository':                     'ecr',
+  'AWS::ECS::Cluster':                        'ecs-cluster',
+  'AWS::CertificateManager::Certificate':     'acm',
+  'AWS::SecretsManager::Secret':              'secrets-manager',
+  'AWS::SSM::Parameter':                      'ssm-parameter',
+  'AWS::Logs::LogGroup':                      'cloudwatch-logs',
+  // CI/CD
+  'AWS::CodePipeline::Pipeline':              'codepipeline',
+  'AWS::CodeBuild::Project':                  'codebuild',
+  'AWS::CodeDeploy::Application':             'codedeploy',
+  'AWS::CodeCommit::Repository':              'codecommit',
+  // Email / Identity
+  'AWS::SES::ConfigurationSet':               'ses',
+  'AWS::SES::EmailIdentity':                  'ses',
+  'AWS::IAM::Role':                           'iam',
+  'AWS::IAM::Policy':                         'iam',
 };
 
 function resolveRef(val: unknown): string {
